@@ -35,7 +35,7 @@ public class Crawler {
 	private String htmlPath = "tempdocsin";
 	private String workingPath;
 
-	private static long startTime;
+	private long startTime;
 
 	//private Comparator comparator = new Comparator();
 
@@ -47,6 +47,7 @@ public class Crawler {
 	//private String cmd;
 
 	public Crawler(String parser, String cmd) throws IOException {
+		startTime = System.currentTimeMillis();
 		this.parser = parser;
 		//this.cmd = cmd;
 		parserRunner = new ParserRunner(parser, cmd);
@@ -249,10 +250,35 @@ public class Crawler {
 		}
 
 	}
+	
+	public void writeHtmlFormLocalWARC(String file) {
+		FileInputStream is = null;
+		try {
+			ccArchiveName = getArchiveName(file);
+			is = new FileInputStream(file);
+			ArchiveReader ar = WARCReaderFactory.get(file, is, true);
+			writeInputs(ar, -1, -1);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (S3ServiceException e) {
+			e.printStackTrace();
+		} finally {
+			if (is != null)
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+	}
+	
 
 	private String getArchiveName(String file) {
 		int beginIndex = file.lastIndexOf("CC-MAIN-");
 		int endIndex = file.lastIndexOf("-ip-");
+		if(beginIndex==-1 || endIndex==-1) {
+			return Paths.get(file).getFileName().toString();
+		}
 		return file.substring(beginIndex, endIndex);
 	}
 
@@ -269,21 +295,21 @@ public class Crawler {
 
 			// The header file contains information such as the type of record,
 			// size, creation time, and URL
-			//System.out.println("Header: " + r.getHeader());
-			System.out.println("URL: " + r.getHeader().getUrl());
-			System.out.println("Content Size: "
-					+ r.getHeader().getContentLength());
+//			System.out.println("Header: " + r.getHeader());
+//			System.out.println("URL: " + r.getHeader().getUrl());
+//			System.out.println("Content Size: "
+//					+ r.getHeader().getContentLength());
 			// recordID =
 			// r.getHeader().getHeaderValue("WARC-Record-ID").toString();
 			// String recordID = r.getHeader().getUrl() + "     Offset: "
 			// + (offset == -1 ? r.getHeader().getOffset() : offset);
-			System.out
-					.println("ID: "
-							+ r.getHeader().getHeaderValue("WARC-Record-ID")
-									.toString());
-			System.out.println("Offset: "
-					+ (offset == -1 ? r.getHeader().getOffset() : offset));
-			System.out.println();
+//			System.out
+//					.println("ID: "
+//							+ r.getHeader().getHeaderValue("WARC-Record-ID")
+//									.toString());
+//			System.out.println("Offset: "
+//					+ (offset == -1 ? r.getHeader().getOffset() : offset));
+//			System.out.println();
 
 			// if (r.getHeader().getMimetype()
 			// .equals("application/http; msgtype=response") &&
@@ -293,10 +319,10 @@ public class Crawler {
 				// Convenience function that reads the full message into a raw
 				// byte array
 				byte[] rawData = IOUtils.toByteArray(r, r.available());
-				String content = new String(rawData);
+				String content = new String(rawData, Charset.forName("UTF-8"));
 				// System.out.println(content);
-				System.out.println();
-				System.out.println();
+//				System.out.println();
+//				System.out.println();
 				// The HTTP header gives us valuable information about what was
 				// received during the request
 				String headerText = content.substring(0,
@@ -331,10 +357,71 @@ public class Crawler {
 							break;
 						}
 					}
+					else{
+						LOG.info("Empty body \n"+ r.getHeader());
+					}
 				}
+			}else{
+				LOG.info("No application/http; msgtype=response: \n"+ r.getHeader());
 			}
-			LOG.info("Elapsed time: "
+			LOG.info("Elapsed time (sec): "
 					+ (System.currentTimeMillis() - startTime) / 1000);
+		}
+
+	}
+	
+	private void writeInputs(ArchiveReader ar, int maxRecords, long offset)
+			throws IOException, S3ServiceException {
+
+		if (!Files.exists(Paths.get(workingPath + ccArchiveName))) {
+			Files.createDirectory(Paths.get(workingPath + ccArchiveName));
+		}
+
+		String body = "";
+		long numberHtmlDocsRetrieved = 0;
+		for (ArchiveRecord r : ar) {
+
+			if (r.getHeader().getMimetype()
+					.equals("application/http; msgtype=response")) {
+				byte[] rawData = IOUtils.toByteArray(r, r.available());
+				String content = new String(rawData);
+				String headerText = content.substring(0,
+						content.indexOf("\r\n\r\n"));
+				//if (headerText.contains("Content-Type: text/html")) {
+					// Only extract the body of the HTTP response when necessary
+					body = content.substring(content.indexOf("\r\n\r\n") + 4);
+
+					// System.out.println(body);
+					if (!body.isEmpty()) {
+						numberHtmlDocsRetrieved++;
+						String recordId = numberHtmlDocsRetrieved
+								+ "_"
+								+ (offset == -1 ? r.getHeader()
+										.getOffset() : offset);
+						String html = workingPath + "/" + ccArchiveName + "/" + recordId+"/input";
+						Path recordDirPath = Paths.get(workingPath + "/" + ccArchiveName + "/" + recordId+"/");
+						if (!Files.exists(recordDirPath)) {
+							Files.createDirectory(recordDirPath);
+						}
+
+						Path htmlPath = Paths.get(html);
+						saveTempFile(htmlPath, body);
+						if (maxRecords!=-1 && numberHtmlDocsRetrieved >= maxRecords) {
+							break;
+						}
+					}
+					else{
+						LOG.info("Empty body \n"+ r.getHeader());
+					}
+//				}
+//				else{
+//					LOG.info("No Content-Type: text/html: \n"+ r.getHeader());
+//				}
+			}else{
+				LOG.info("No application/http; msgtype=response: \n"+ r.getHeader());
+			}
+//			LOG.info("Elapsed time (sec): "
+//					+ (System.currentTimeMillis() - startTime) / 1000);
 		}
 
 	}
@@ -399,7 +486,7 @@ public class Crawler {
 					numberHtmlDocsRetrieved++;
 				}
 			}
-			LOG.info("Elapsed time: "
+			LOG.info("Elapsed time (sec): "
 					+ (System.currentTimeMillis() - startTime) / 1000);
 		}
 
@@ -421,6 +508,8 @@ public class Crawler {
 //		// String
 //		comparator.run(recordID, reportFile, outputTrees);
 //	}
+	
+	
 
 	public static void main(String[] args) throws IOException {
 
@@ -440,11 +529,9 @@ public class Crawler {
 //		// offset = 15172197; // CDATA
 //		offset = 540967;
 
-		startTime = System.currentTimeMillis();
-		
 		Crawler crawler = new Crawler(parseName,
 				 cmd);
-		
+//		
 //		 Crawler crawler = new Crawler("html5lib",
 //		 "python /home/jose/HTML5ParserComparator/html5lib/html5libAdapter.py -f");
 
@@ -458,12 +545,14 @@ public class Crawler {
 		// crawler.processRemoteFile(fn, 50);
 
 		//String ccfile = "/home/jose/Downloads/CC-MAIN-20150417045713-00000-ip-10-235-10-82.ec2.internal.warc.gz";
-		crawler.processLocalFile(ccfile);
+		//crawler.processLocalFile(ccfile);
+		
+		crawler.writeHtmlFormLocalWARC(ccfile);
 		// crawler.processLocalRecord(local, offset);
-		// int total = crawler.countTotalRecords(local);
-		// LOG.info("Total: "+total);
-		long finalTime = System.currentTimeMillis() - startTime;
-		LOG.info("DONE!!!!");
-		LOG.info("Elapsed time: " + finalTime / 1000);
+		 //int total = crawler.countTotalRecords(ccfile);
+		 //LOG.info("Total: "+total);
+//		long finalTime = System.currentTimeMillis() - startTime;
+//		LOG.info("DONE!!!!");
+//		LOG.info("Elapsed time (sec): " + finalTime / 1000);
 	}
 }

@@ -1,6 +1,7 @@
 package com.html5tools.commoncrawl;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -11,7 +12,7 @@ public class ParserRunner {
 			.getName());
 	// private static final String WORKING_PATH =
 	// "/home/jose/HTML5ParserComparator/";
-	private static final long TIMEOUT = 60000;
+	private static final long TIMEOUT = 90000;
 
 	private String name;
 	private String cmd;
@@ -49,7 +50,7 @@ public class ParserRunner {
 			parser.join();
 
 			if (parser.resCmd == 0) {
-				result = new String(parser.result);
+				result = new String(parser.result,Charset.forName("UTF-8"));
 			} else if (parser.resCmd < 0) {
 				result = "ERROR: Timeout reached" + parser.parserName;
 			} else {

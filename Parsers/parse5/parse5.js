@@ -44,7 +44,7 @@ function parseURL(input){
 		if(html5libFormat.charAt(html5libFormat.length - 1) == '\n') 
 			html5libFormat = html5libFormat.substring(0, html5libFormat.length - 1);
 
-		console.log(html5libFormat);
+		console.log('%s',html5libFormat);
 	});
 }
 
@@ -61,7 +61,7 @@ function parseInput(input){
 	if(html5libFormat.charAt(html5libFormat.length - 1) == '\n') 
 		html5libFormat = html5libFormat.substring(0, html5libFormat.length - 1);
 
-	console.log(html5libFormat);
+	console.log('%s',html5libFormat);
 
 	/*
 	//Write the output file
@@ -162,14 +162,27 @@ function serializeToTestDataFormat(rootNode, treeAdapter) {
 
                 treeAdapter.getAttrList(node).forEach(function (attr) {
                     var attrStr = getSerializedTreeIndent(childrenIndent);
-					var prefix = '';
+					//var prefix = '';
+					var attUri = '';
+					if (attr.namespace) {
+						switch (attr.namespace) {
+						case 'http://www.w3.org/XML/1998/namespace':
+							attUri += 'xml ';
+							break;
+						case 'http://www.w3.org/2000/xmlns/':
+							attUri += 'xmlns ';
+							break;
+						case 'http://www.w3.org/1999/xlink':
+							attUri += 'xlink ';
+							break;
+						}
+					}
 
-                    if (attr.prefix)
-						prefix = attr.prefix + ' ';
-                        //attrStr += attr.prefix + ' ';
+                    //if (attr.prefix)
+						//prefix = attr.prefix + ' ';
 					
-                    attrStr += prefix + attr.name + '="' + attr.value + '"\n';
-					serializedAttrs[prefix + attr.name	] = attrStr;  
+                    attrStr += attUri + attr.name + '="' + attr.value + '"\n';
+					serializedAttrs[attUri + attr.name	] = attrStr;  
 					
 
                     //serializedAttrs.push(attr.name,attrStr);
