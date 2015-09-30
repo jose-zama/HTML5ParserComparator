@@ -1,22 +1,17 @@
-rm -f report.xml
-
-testData="./html5libTests/data/tests*"
+testData="/home/jose/HTML5ParserComparator/html5libtestdocs/data"
+outFolder="/home/jose/HTML5ParserComparator/html5libtestdocs/out"
 
 inputType="-f"
-#input="/home/mbgppja7/Documents/HTML5Parser/html5libTests/data/adoption01/1.txt"
 
-#for filename in $(ls -R $testData/ *.txt); do
-equals=0
-different=0
-echo "Report" > results.txt
-for filename in $(find $testData -name '*.txt'); do
+for filename in $(find $testData -name input -type f); do
 	echo 'Processing '$filename
-	parse5output=`node parse5/parser5.js "$inputType" "$filename"`
-	jsoupOutput=`java -jar jsoup/JsoupParser.jar "$inputType" "$filename"`
-	html5libOutput=`python html5lib/html5libAdapter.py "$inputType" "$filename"`
-	expected=`cat $(echo $filename | sed 's/data/expected/g')`
-
-	echo `java -jar comparator/Comparator.jar "$filename" "$expected" "expected" "$html5libOutput" "html5lib" "$parse5output" "parse5" "$jsoupOutput" "jsoup"`	
-
+	folder=$(basename $(dirname $filename))
+	foldet=$outFolder'/'$folder
+	mkdir $outFolder'/'$folder
+	#node /home/jose/HTML5ParserComparator/Parsers/parse5/parse5.js "$inputType" "$filename" > $foldet'/parse5'
+	python /home/jose/HTML5ParserComparator/Parsers/html5lib/html5libAdapter.py "$inputType" "$filename" > $foldet'/html5lib'
+	#java -jar /home/jose/HTML5ParserComparator/Parsers/MScParser/MScParser.jar "$inputType" "$filename" > $foldet'/MScParser'
+	#java -jar /home/jose/HTML5ParserComparator/Parsers/jsoup/JsoupParser.jar "$inputType" "$filename" > $foldet'/jsoup'
+	#java -jar /home/jose/HTML5ParserComparator/Parsers/validatorNu/validatorNuAdapter.jar "$inputType" "$filename" > $foldet'/validatorNU'
 done
 
