@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -24,7 +26,14 @@ public class JsoupParser {
 
 		switch (args[0]) {
 		case "-f":
-			html = readFile(args[1]);
+			//html = readFile(args[1]);
+			try {
+				byte[] fileArray;
+				fileArray = Files.readAllBytes(Paths.get(args[1]));
+				html = new String(fileArray, Charset.forName("UTF-8"));
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			if(html == null)
 				return;
 			break;

@@ -94,6 +94,14 @@ public class Html5libSerializer {
 				if(current.nodeName().equals("template")){
 					str += "\n| " + indent(1 + ancestors + templateAncestors(current, 0)) + "content";
 				}
+
+				next = current.childNodeSize() > 0 ? current.childNode(0) : null;
+				if (null != next) {
+					parent = current;
+					current = next;
+					ancestors++;
+					continue;
+				}
 				break;
 			case "Entities":
 				str += "<![CDATA[ " + current.nodeName() + " ]]>";
@@ -107,13 +115,7 @@ public class Html5libSerializer {
 				break;
 			}
 
-			next = current.childNodeSize() > 0 ? current.childNode(0) : null;
-			if (null != next) {
-				parent = current;
-				current = next;
-				ancestors++;
-				continue;
-			}
+			
 
 			for (;;) {
 				next = current.nextSibling();
