@@ -45,9 +45,9 @@ public class CommandUI {
 			client = new AmazonS3Client(
 					new ProfileCredentialsProvider("profileConfigFile.properties",
 							"default"));
-			CrawlIndex ci = new CrawlIndex(args[1], bucketName, args[2]);
+			CrawlIndex ci = new CrawlIndex(args[2], bucketName, args[3]);
 			try {
-				ci.createSample(Integer.parseInt(args[0]), args[3]);
+				ci.createSample(Integer.parseInt(args[1]), args[4]);
 				// ci.createSample(10, "/home/jose/Downloads/myindex.cdx");
 			} catch (NumberFormatException | IOException e1) {
 				e1.printStackTrace();
@@ -59,7 +59,7 @@ public class CommandUI {
 					new ProfileCredentialsProvider("profileConfigFile.properties",
 							"default"));
 			try {
-				CrawlIndex.obtainCommonCrawlRecords(Paths.get(args[0]), Paths.get(args[1]),
+				CrawlIndex.obtainCommonCrawlRecords(Paths.get(args[1]), Paths.get(args[2]),
 						client, bucketName);
 			} catch (IOException e) {
 				e.printStackTrace();

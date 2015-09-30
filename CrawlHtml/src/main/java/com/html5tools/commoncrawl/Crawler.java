@@ -387,7 +387,7 @@ public class Crawler {
 				String content = new String(rawData);
 				String headerText = content.substring(0,
 						content.indexOf("\r\n\r\n"));
-				//if (headerText.contains("Content-Type: text/html")) {
+				if (headerText.contains("Content-Type: text/html")) {
 					// Only extract the body of the HTTP response when necessary
 					body = content.substring(content.indexOf("\r\n\r\n") + 4);
 
@@ -413,10 +413,10 @@ public class Crawler {
 					else{
 						LOG.info("Empty body \n"+ r.getHeader());
 					}
-//				}
-//				else{
-//					LOG.info("No Content-Type: text/html: \n"+ r.getHeader());
-//				}
+				}
+				else{
+					LOG.info("No Content-Type: text/html: \n"+ r.getHeader());
+				}
 			}else{
 				LOG.info("No application/http; msgtype=response: \n"+ r.getHeader());
 			}

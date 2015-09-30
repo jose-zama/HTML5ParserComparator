@@ -12,7 +12,7 @@ public class ParserRunner {
 			.getName());
 	// private static final String WORKING_PATH =
 	// "/home/jose/HTML5ParserComparator/";
-	private static final long TIMEOUT = 90000;
+	private static final long TIMEOUT = 300000;
 
 	private String name;
 	private String cmd;
