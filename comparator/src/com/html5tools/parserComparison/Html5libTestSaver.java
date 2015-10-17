@@ -12,7 +12,7 @@ import com.html5tools.Utils.IOUtils;
 public class Html5libTestSaver {
 	public static void main(String[] args) {
 
-		String path = Paths.get("C:\\Users\\hs012\\Desktop\\html5libTests")
+		String path = Paths.get(args[0])
 				.toString();
 		if (!IOUtils.createDirectory(path))
 			return;
@@ -85,8 +85,8 @@ public class Html5libTestSaver {
 			String dataPath = Paths.get(path, "data", shortName).toString();
 			String expectedPath = Paths.get(path, "expected", shortName)
 					.toString();
-			IOUtils.createDirectory(dataPath);
-			IOUtils.createDirectory(expectedPath);
+			IOUtils.createDirectory(Paths.get(path, "data").toString());
+			IOUtils.createDirectory(Paths.get(path, "expected").toString());
 			saveTestFile(dataPath, expectedPath, resource);
 
 			System.out.println("tests saved in " + dataPath);
@@ -133,9 +133,11 @@ public class Html5libTestSaver {
 				// System.out.println(path + "\\input\\" + testName);
 				// System.out.println(data);
 				// System.out.println(expected);
-				IOUtils.saveFile(Paths.get(dataPath, Integer.toString(i))
+				IOUtils.createDirectory(dataPath+"_"+Integer.toString(i));
+				IOUtils.saveFile(Paths.get(dataPath+"_"+Integer.toString(i), "input")
 						.toString(), data);
-				IOUtils.saveFile(Paths.get(expectedPath, Integer.toString(i))
+				IOUtils.createDirectory(expectedPath+"_"+Integer.toString(i));
+				IOUtils.saveFile(Paths.get(expectedPath+"_"+Integer.toString(i), "correct")
 						.toString(), expected);
 			}
 
